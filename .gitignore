@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Build output
+dist/
+.output/
+.nuxt/
+.nitro/
+.cache/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+backend/prisma/migrations/dev/
+
+# Local uploads / temp audio (never commit consultation data)
+backend/tmp/
+backend/uploads/
+*.mp3
+*.wav
+*.m4a
+
+# Docker
+docker-compose.override.yml
+
+# Misc
+*.pem
+*.key
+.turbo/
