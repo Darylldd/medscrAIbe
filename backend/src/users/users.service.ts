@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role, User } from '../../generated/prisma/client';
+
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
@@ -21,5 +22,15 @@ export class UsersService {
     role?: Role;
   }): Promise<User> {
     return this.prisma.user.create({ data });
+  }
+
+  async updateProfile(
+    id: string,
+    data: { firstName?: string; lastName?: string },
+  ): Promise<User> {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
   }
 }
