@@ -36,8 +36,27 @@ model User {
   updatedAt    DateTime @updatedAt
 
   refreshTokens RefreshToken[]
+  patients      Patient[]
 
   @@map("users")
+}
+
+model Patient {
+  id          String   @id @default(uuid())
+  firstName   String
+  lastName    String
+  dateOfBirth DateTime
+  notes       String?
+  isArchived  Boolean  @default(false)
+
+  doctorId String
+  doctor   User   @relation(fields: [doctorId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([doctorId])
+  @@map("patients")
 }
 
 model RefreshToken {
