@@ -7,6 +7,8 @@ import { PatientsModule } from './patients/patients.module';
 import { ConsultationsModule } from './consultations/consultations.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { StorageModule } from './storage/storage.module';
+import { AiModule } from './ai/ai.module';
+import { DocumentationEngineModule } from './documentation-engine/documentation-engine.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { StorageModule } from './storage/storage.module';
     ConsultationsModule,
     UploadsModule,
     StorageModule,
+    AiModule,
+    DocumentationEngineModule,
   ],
   controllers: [],
   providers: [],
