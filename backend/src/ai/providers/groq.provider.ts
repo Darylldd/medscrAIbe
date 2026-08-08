@@ -8,6 +8,7 @@ import type {
   SoapDraftResult,
 } from '../interfaces/ai-provider.interface';
 import { PromptBuilderService } from '../prompt-builder.service';
+import { SoapValidationService } from '../soap-validation.service';
 
 @Injectable()
 export class GroqProvider implements AIProvider {
@@ -18,6 +19,7 @@ export class GroqProvider implements AIProvider {
   constructor(
     private readonly configService: ConfigService,
     private readonly promptBuilder: PromptBuilderService,
+    private readonly soapValidation: SoapValidationService,
   ) {
     this.client = new Groq({
       apiKey: this.configService.get<string>('GROQ_API_KEY'),
@@ -57,7 +59,8 @@ export class GroqProvider implements AIProvider {
       throw new Error('Groq returned an empty response');
     }
 
-    return JSON.parse(raw) as SoapDraftResult;
+    const parsed: unknown = JSON.parse(raw);
+    return this.soapValidation.validate(parsed);
   }
 
   private mimeTypeToExtension(mimeType: string): string {
