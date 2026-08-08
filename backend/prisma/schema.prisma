@@ -81,11 +81,27 @@ model Consultation {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+   audioRecording AudioRecording?
+   
   @@index([patientId])
   @@index([doctorId])
   @@index([status])
   @@map("consultations")
+}
+
+model AudioRecording {
+  id           String   @id @default(uuid())
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  storageKey   String
+
+  consultationId String       @unique
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("audio_recordings")
 }
 
 model RefreshToken {
