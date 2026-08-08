@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Param,
   Req,
   UseGuards,
@@ -32,5 +33,14 @@ export class UploadsController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.uploadsService.attachAudio(req.user.id, consultationId, file);
+  }
+
+  @Get(':id/audio')
+  async getAudioUrl(
+    @Req() req: any,
+    @Param('id', ParseUUIDPipe) consultationId: string,
+  ) {
+    const url = await this.uploadsService.getDownloadUrl(req.user.id, consultationId);
+    return { url };
   }
 }

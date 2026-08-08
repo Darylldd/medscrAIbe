@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { PatientsModule } from './patients/patients.module';
 import { ConsultationsModule } from './consultations/consultations.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UploadsModule } from './uploads/uploads.module';
     PatientsModule,
     ConsultationsModule,
     UploadsModule,
+    StorageModule,
   ],
   controllers: [],
   providers: [],
