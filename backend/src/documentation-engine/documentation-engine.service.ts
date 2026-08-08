@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { AiService } from '../ai/ai.service';
+import { SoapNotesService } from '../soap-notes/soap-notes.service';
 import { InvalidSoapDraftError } from '../ai/soap-validation.service';
 import { ConsultationStatus } from '../../generated/prisma/client';
 
@@ -13,6 +14,7 @@ export class DocumentationEngineService {
     private readonly prisma: PrismaService,
     private readonly storageService: StorageService,
     private readonly aiService: AiService,
+    private readonly soapNotesService: SoapNotesService,
   ) {}
 
   async processConsultation(consultationId: string): Promise<void> {
@@ -57,8 +59,9 @@ export class DocumentationEngineService {
 
       const soapDraft = await this.generateSoapDraftWithRetry(consultationId, transcription.text);
 
-      this.logger.log(`SOAP draft generated for ${consultationId}`);
-      this.logger.debug(JSON.stringify(soapDraft, null, 2));
+      const savedNote = await this.soapNotesService.createDraft(consultationId, soapDraft);
+
+      this.logger.log(`SOAP draft saved for ${consultationId} as version ${savedNote.version}`);
 
       await this.prisma.consultation.update({
         where: { id: consultationId },

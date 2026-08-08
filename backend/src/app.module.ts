@@ -9,6 +9,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { StorageModule } from './storage/storage.module';
 import { AiModule } from './ai/ai.module';
 import { DocumentationEngineModule } from './documentation-engine/documentation-engine.module';
+import { SoapNotesModule } from './soap-notes/soap-notes.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { DocumentationEngineModule } from './documentation-engine/documentation-
     StorageModule,
     AiModule,
     DocumentationEngineModule,
+    SoapNotesModule,
   ],
   controllers: [],
   providers: [],

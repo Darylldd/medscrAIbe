@@ -82,7 +82,7 @@ model Consultation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
    audioRecording AudioRecording?
-   
+  soapNotes SoapNote[]
   @@index([patientId])
   @@index([doctorId])
   @@index([status])
@@ -102,6 +102,39 @@ model AudioRecording {
   createdAt DateTime @default(now())
 
   @@map("audio_recordings")
+}
+
+enum SoapNoteStatus {
+  DRAFT
+  APPROVED
+}
+
+model SoapNote {
+  id      String         @id @default(uuid())
+  version Int
+  status  SoapNoteStatus @default(DRAFT)
+
+  subjectiveContent    String
+  subjectiveNotMentioned String[]
+  objectiveContent    String
+  objectiveNotMentioned String[]
+  assessmentContent    String
+  assessmentNotMentioned String[]
+  planContent      String
+  planNotMentioned String[]
+
+  consultationId String
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Restrict)
+
+  approvedAt DateTime?
+  approvedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([consultationId, version])
+  @@index([consultationId])
+  @@map("soap_notes")
 }
 
 model RefreshToken {
