@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { SoapNote } from '../../generated/prisma/client';
+import { SoapNote, SoapNoteStatus } from '../../generated/prisma/client';
 import type { SoapDraftResult } from '../ai/interfaces/ai-provider.interface';
 
 @Injectable()
@@ -44,4 +44,14 @@ export class SoapNotesService {
       orderBy: { version: 'asc' },
     });
   }
+  async approve(id: string, doctorId: string): Promise<SoapNote> {
+  return this.prisma.soapNote.update({
+    where: { id },
+    data: {
+      status: SoapNoteStatus.APPROVED,
+      approvedAt: new Date(),
+      approvedBy: doctorId,
+    },
+  });
+}
 }

@@ -22,5 +22,12 @@ export function useSoapNotes() {
     });
   }
 
-  return { fetchLatestSoapNote };
+  async function approveSoapNote(consultationId: string): Promise<SoapNote> {
+    return request<SoapNote>(`/consultations/${consultationId}/soap-note/approve`, {
+      method: 'POST',
+      token: authStore.accessToken!,
+    });
+  }
+
+  return { fetchLatestSoapNote, approveSoapNote };
 }
