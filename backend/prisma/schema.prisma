@@ -148,3 +148,25 @@ model RefreshToken {
 
   @@map("refresh_tokens")
 }
+enum AuditAction {
+  PATIENT_CREATED
+  CONSULTATION_CREATED
+  AUDIO_UPLOADED
+  SOAP_DRAFT_GENERATED
+  SOAP_NOTE_APPROVED
+}
+
+model AuditLog {
+  id       String      @id @default(uuid())
+  action   AuditAction
+  actorId  String
+  targetId String
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([targetId])
+  @@index([actorId])
+  @@map("audit_logs")
+}
