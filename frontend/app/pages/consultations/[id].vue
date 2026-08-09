@@ -7,7 +7,8 @@ const config = useRuntimeConfig();
 const authStore = useAuthStore();
 
 const { fetchConsultation } = useConsultations();
-const { fetchLatestSoapNote, approveSoapNote } = useSoapNotes();
+const { fetchLatestSoapNote, fetchAllSoapNoteVersions, approveSoapNote } = useSoapNotes();
+
 
 const consultation = ref<Awaited<ReturnType<typeof fetchConsultation>> | null>(null);
 const soapNote = ref<Awaited<ReturnType<typeof fetchLatestSoapNote>> | null>(null);
@@ -26,6 +27,7 @@ async function loadConsultation() {
 
     if (consultation.value.status === 'READY_FOR_REVIEW' || consultation.value.status === 'APPROVED') {
       soapNote.value = await fetchLatestSoapNote(consultationId);
+      allVersions.value = await fetchAllSoapNoteVersions(consultationId);
     }
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : 'Failed to load consultation';
@@ -49,6 +51,14 @@ async function handleApprove() {
     isApproving.value = false;
   }
 }
+
+const allVersions = ref<Awaited<ReturnType<typeof fetchAllSoapNoteVersions>>>([]);
+const selectedVersionId = ref<string | null>(null);
+
+const displayedNote = computed(() => {
+  if (!selectedVersionId.value) return soapNote.value;
+  return allVersions.value.find((v) => v.id === selectedVersionId.value) ?? soapNote.value;
+});
 
 onMounted(async () => {
   await loadConsultation();
@@ -182,37 +192,46 @@ function statusLabel(status: string): string {
 <p v-if="consultation.status === 'APPROVED'" class="approved-notice">
   ✓ This note has been approved and is now the final medical record.
 </p>
-        <section>
-          <h3>Subjective</h3>
-          <p>{{ soapNote.subjectiveContent || '(No content generated)' }}</p>
-          <p v-if="soapNote.subjectiveNotMentioned.length" class="not-mentioned">
-            Not mentioned: {{ soapNote.subjectiveNotMentioned.join(', ') }}
-          </p>
-        </section>
+<div v-if="allVersions.length > 1" class="version-selector">
+  <label for="version">Viewing version:</label>
+  <select id="version" v-model="selectedVersionId">
+    <option :value="null">Latest (v{{ soapNote?.version }})</option>
+    <option v-for="v in allVersions" :key="v.id" :value="v.id">
+      Version {{ v.version }} — {{ new Date(v.createdAt).toLocaleString() }}
+    </option>
+  </select>
+</div>
+       <section>
+  <h3>Subjective</h3>
+  <p>{{ displayedNote?.subjectiveContent || '(No content generated)' }}</p>
+  <p v-if="displayedNote?.subjectiveNotMentioned.length" class="not-mentioned">
+    Not mentioned: {{ displayedNote.subjectiveNotMentioned.join(', ') }}
+  </p>
+</section>
 
-        <section>
-          <h3>Objective</h3>
-          <p>{{ soapNote.objectiveContent || '(No content generated)' }}</p>
-          <p v-if="soapNote.objectiveNotMentioned.length" class="not-mentioned">
-            Not mentioned: {{ soapNote.objectiveNotMentioned.join(', ') }}
-          </p>
-        </section>
+<section>
+  <h3>Objective</h3>
+  <p>{{ displayedNote?.objectiveContent || '(No content generated)' }}</p>
+  <p v-if="displayedNote?.objectiveNotMentioned.length" class="not-mentioned">
+    Not mentioned: {{ displayedNote.objectiveNotMentioned.join(', ') }}
+  </p>
+</section>
 
-        <section>
-          <h3>Assessment</h3>
-          <p>{{ soapNote.assessmentContent || '(No content generated)' }}</p>
-          <p v-if="soapNote.assessmentNotMentioned.length" class="not-mentioned">
-            Not mentioned: {{ soapNote.assessmentNotMentioned.join(', ') }}
-          </p>
-        </section>
+<section>
+  <h3>Assessment</h3>
+  <p>{{ displayedNote?.assessmentContent || '(No content generated)' }}</p>
+  <p v-if="displayedNote?.assessmentNotMentioned.length" class="not-mentioned">
+    Not mentioned: {{ displayedNote.assessmentNotMentioned.join(', ') }}
+  </p>
+</section>
 
-        <section>
-          <h3>Plan</h3>
-          <p>{{ soapNote.planContent || '(No content generated)' }}</p>
-          <p v-if="soapNote.planNotMentioned.length" class="not-mentioned">
-            Not mentioned: {{ soapNote.planNotMentioned.join(', ') }}
-          </p>
-        </section>
+<section>
+  <h3>Plan</h3>
+  <p>{{ displayedNote?.planContent || '(No content generated)' }}</p>
+  <p v-if="displayedNote?.planNotMentioned.length" class="not-mentioned">
+    Not mentioned: {{ displayedNote.planNotMentioned.join(', ') }}
+  </p>
+</section>
       </div>
     </template>
   </div>
@@ -356,5 +375,18 @@ h1 {
   padding: 0.75rem 1rem;
   border-radius: 6px;
   margin-bottom: 1.25rem;
+}
+.version-selector {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.version-selector select {
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 </style>

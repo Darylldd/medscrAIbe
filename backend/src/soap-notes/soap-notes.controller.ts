@@ -34,6 +34,23 @@ export class SoapNotesController {
     return note;
   }
 
+  @Get(':id/soap-notes')
+  async getAllVersions(@Req() req: any, @Param('id', ParseUUIDPipe) consultationId: string) {
+    const consultation = await this.prisma.consultation.findUnique({
+      where: { id: consultationId },
+    });
+
+    if (!consultation) {
+      throw new NotFoundException('Consultation not found');
+    }
+
+    if (consultation.doctorId !== req.user.id) {
+      throw new ForbiddenException('You do not have access to this consultation');
+    }
+
+    return this.soapNotesService.findAllVersionsForConsultation(consultationId);
+  }
+
   @Post(':id/soap-note/approve')
   async approveSoapNote(@Req() req: any, @Param('id', ParseUUIDPipe) consultationId: string) {
     const consultation = await this.prisma.consultation.findUnique({

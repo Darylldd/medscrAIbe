@@ -10,6 +10,7 @@ interface SoapNote {
   assessmentNotMentioned: string[];
   planContent: string;
   planNotMentioned: string[];
+  createdAt: string;
 }
 
 export function useSoapNotes() {
@@ -22,6 +23,12 @@ export function useSoapNotes() {
     });
   }
 
+  async function fetchAllSoapNoteVersions(consultationId: string): Promise<SoapNote[]> {
+    return request<SoapNote[]>(`/consultations/${consultationId}/soap-notes`, {
+      token: authStore.accessToken!,
+    });
+  }
+
   async function approveSoapNote(consultationId: string): Promise<SoapNote> {
     return request<SoapNote>(`/consultations/${consultationId}/soap-note/approve`, {
       method: 'POST',
@@ -29,5 +36,5 @@ export function useSoapNotes() {
     });
   }
 
-  return { fetchLatestSoapNote, approveSoapNote };
+  return { fetchLatestSoapNote, fetchAllSoapNoteVersions, approveSoapNote };
 }
