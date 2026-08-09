@@ -3,13 +3,21 @@ definePageMeta({ middleware: 'auth' });
 
 const authStore = useAuthStore();
 const router = useRouter();
-const { fetchPatients } = usePatients();
+const { fetchPatients, createPatient } = usePatients();
 
 const patients = ref<Awaited<ReturnType<typeof fetchPatients>>>([]);
 const isLoading = ref(true);
 const loadError = ref('');
 
-onMounted(async () => {
+const showNewPatientForm = ref(false);
+const newFirstName = ref('');
+const newLastName = ref('');
+const newDob = ref('');
+const isCreating = ref(false);
+const createError = ref('');
+
+async function loadPatients() {
+  isLoading.value = true;
   try {
     patients.value = await fetchPatients();
   } catch (error) {
@@ -17,7 +25,33 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
-});
+}
+
+onMounted(loadPatients);
+
+async function handleCreatePatient() {
+  createError.value = '';
+  isCreating.value = true;
+
+  try {
+    await createPatient({
+      firstName: newFirstName.value,
+      lastName: newLastName.value,
+      dateOfBirth: newDob.value,
+    });
+
+    newFirstName.value = '';
+    newLastName.value = '';
+    newDob.value = '';
+    showNewPatientForm.value = false;
+
+    await loadPatients();
+  } catch (error) {
+    createError.value = error instanceof Error ? error.message : 'Failed to create patient';
+  } finally {
+    isCreating.value = false;
+  }
+}
 
 function handleLogout() {
   authStore.logout();
@@ -41,26 +75,55 @@ function formatDob(dob: string): string {
       </div>
     </header>
 
-    <main>
-      <h2>Patients</h2>
+   <main>
+  <div class="section-header">
+    <h2>Patients</h2>
+    <button v-if="!showNewPatientForm" @click="showNewPatientForm = true">
+      + New Patient
+    </button>
+  </div>
 
-      <p v-if="isLoading">Loading patients...</p>
+  <form v-if="showNewPatientForm" class="new-patient-form" @submit.prevent="handleCreatePatient">
+    <div class="form-row">
+      <div>
+        <label for="firstName">First name</label>
+        <input id="firstName" v-model="newFirstName" required />
+      </div>
+      <div>
+        <label for="lastName">Last name</label>
+        <input id="lastName" v-model="newLastName" required />
+      </div>
+    </div>
+    <label for="dob">Date of birth</label>
+    <input id="dob" v-model="newDob" type="date" required />
 
-      <p v-else-if="loadError" class="error" role="alert">{{ loadError }}</p>
+    <p v-if="createError" class="error" role="alert">{{ createError }}</p>
 
-      <p v-else-if="patients.length === 0" class="empty">
-        No patients yet.
-      </p>
+    <div class="form-actions">
+      <button type="button" class="secondary" @click="showNewPatientForm = false">Cancel</button>
+      <button type="submit" :disabled="isCreating">
+        {{ isCreating ? 'Creating...' : 'Create Patient' }}
+      </button>
+    </div>
+  </form>
 
-      <ul v-else class="patient-list">
-        <li v-for="patient in patients" :key="patient.id">
-          <NuxtLink :to="`/patients/${patient.id}`">
-            {{ patient.lastName }}, {{ patient.firstName }}
-            <span class="dob">DOB: {{ formatDob(patient.dateOfBirth) }}</span>
-          </NuxtLink>
-        </li>
-      </ul>
-    </main>
+  <p v-if="isLoading">Loading patients...</p>
+
+  <p v-else-if="loadError" class="error" role="alert">{{ loadError }}</p>
+
+  <p v-else-if="patients.length === 0" class="empty">
+    No patients yet. Create one to get started.
+  </p>
+
+  <ul v-else class="patient-list">
+    <li v-for="patient in patients" :key="patient.id">
+      <NuxtLink :to="`/patients/${patient.id}`">
+        {{ patient.lastName }}, {{ patient.firstName }}
+        <span class="dob">DOB: {{ formatDob(patient.dateOfBirth) }}</span>
+      </NuxtLink>
+    </li>
+  </ul>
+</main>
   </div>
 </template>
 
@@ -152,5 +215,62 @@ h2 {
 .dob {
   font-size: 0.85rem;
   color: #666;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.new-patient-form {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-row > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.new-patient-form label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.new-patient-form input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.form-actions button.secondary {
+  background: white;
+  color: #333;
+  border: 1px solid #ccc;
 }
 </style>

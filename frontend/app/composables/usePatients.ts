@@ -7,6 +7,13 @@ interface Patient {
   isArchived: boolean;
 }
 
+interface CreatePatientInput {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  notes?: string;
+}
+
 export function usePatients() {
   const { request } = useApi();
   const authStore = useAuthStore();
@@ -23,5 +30,13 @@ export function usePatients() {
     });
   }
 
-  return { fetchPatients, fetchPatient };
+  async function createPatient(input: CreatePatientInput): Promise<Patient> {
+    return request<Patient>('/patients', {
+      method: 'POST',
+      body: input,
+      token: authStore.accessToken!,
+    });
+  }
+
+  return { fetchPatients, fetchPatient, createPatient };
 }
