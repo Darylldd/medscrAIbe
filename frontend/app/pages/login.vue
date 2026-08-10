@@ -51,11 +51,25 @@ async function handleSubmit() {
       <button type="submit" :disabled="isSubmitting">
         {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
       </button>
+      <p class="signup-link">
+  Don't have an account? <NuxtLink to="/signup">Create one</NuxtLink>
+</p>
     </form>
   </div>
 </template>
 
 <style scoped>
+.signup-link {
+  text-align: center;
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+  color: #666;
+}
+
+.signup-link a {
+  color: #2563eb;
+  text-decoration: none;
+}
 .login-page {
   display: flex;
   align-items: center;
