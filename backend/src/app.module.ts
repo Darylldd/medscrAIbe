@@ -10,6 +10,7 @@ import { StorageModule } from './storage/storage.module';
 import { AiModule } from './ai/ai.module';
 import { DocumentationEngineModule } from './documentation-engine/documentation-engine.module';
 import { SoapNotesModule } from './soap-notes/soap-notes.module';
+import { AuditLogModule } from './audit-log/audit-log.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { SoapNotesModule } from './soap-notes/soap-notes.module';
     AiModule,
     DocumentationEngineModule,
     SoapNotesModule,
+    AuditLogModule,
   ],
   controllers: [],
   providers: [],

@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Param, Req, UseGuards, ParseUUIDPipe, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { SoapNotesService } from './soap-notes.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('consultations')
@@ -9,6 +10,7 @@ export class SoapNotesController {
   constructor(
     private readonly soapNotesService: SoapNotesService,
     private readonly prisma: PrismaService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   @Get(':id/soap-note')
@@ -76,6 +78,10 @@ export class SoapNotesController {
     await this.prisma.consultation.update({
       where: { id: consultationId },
       data: { status: 'APPROVED' },
+    });
+
+    await this.auditLog.record('SOAP_NOTE_APPROVED', req.user.id, consultationId, {
+      version: approved.version,
     });
 
     return approved;

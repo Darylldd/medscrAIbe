@@ -1,11 +1,15 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { Consultation, ConsultationStatus } from '../../generated/prisma/client';
 import { CreateConsultationDto } from './dto/create-consultation.dto';
 
 @Injectable()
 export class ConsultationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLog: AuditLogService,
+  ) {}
 
   async create(doctorId: string, dto: CreateConsultationDto): Promise<Consultation> {
     const patient = await this.prisma.patient.findUnique({
@@ -20,7 +24,7 @@ export class ConsultationsService {
       throw new ForbiddenException('You do not have access to this patient');
     }
 
-    return this.prisma.consultation.create({
+    const consultation = await this.prisma.consultation.create({
       data: {
         patientId: dto.patientId,
         doctorId,
@@ -28,6 +32,10 @@ export class ConsultationsService {
         status: ConsultationStatus.UPLOADED,
       },
     });
+
+    await this.auditLog.record('CONSULTATION_CREATED', doctorId, consultation.id);
+
+    return consultation;
   }
 
   async findAllForPatient(doctorId: string, patientId: string): Promise<Consultation[]> {

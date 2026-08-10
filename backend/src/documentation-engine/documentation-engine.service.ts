@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { AiService } from '../ai/ai.service';
 import { SoapNotesService } from '../soap-notes/soap-notes.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { InvalidSoapDraftError } from '../ai/soap-validation.service';
 import { ConsultationStatus } from '../../generated/prisma/client';
 
@@ -15,6 +16,7 @@ export class DocumentationEngineService {
     private readonly storageService: StorageService,
     private readonly aiService: AiService,
     private readonly soapNotesService: SoapNotesService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   async processConsultation(consultationId: string): Promise<void> {
@@ -62,6 +64,10 @@ export class DocumentationEngineService {
       const savedNote = await this.soapNotesService.createDraft(consultationId, soapDraft);
 
       this.logger.log(`SOAP draft saved for ${consultationId} as version ${savedNote.version}`);
+
+      await this.auditLog.record('SOAP_DRAFT_GENERATED', consultation.doctorId, consultationId, {
+        version: savedNote.version,
+      });
 
       await this.prisma.consultation.update({
         where: { id: consultationId },

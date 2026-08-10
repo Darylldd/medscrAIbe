@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { AudioRecording } from '../../generated/prisma/client';
 import { ALLOWED_AUDIO_MIME_TYPES } from './constants/audio-upload.constants';
 
@@ -9,6 +10,7 @@ export class UploadsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storageService: StorageService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   async attachAudio(
@@ -43,7 +45,7 @@ export class UploadsService {
 
     await this.storageService.uploadBuffer(storageKey, file.buffer, file.mimetype);
 
-    return this.prisma.audioRecording.create({
+    const audioRecording = await this.prisma.audioRecording.create({
       data: {
         consultationId,
         fileName: file.originalname,
@@ -52,6 +54,13 @@ export class UploadsService {
         storageKey,
       },
     });
+
+    await this.auditLog.record('AUDIO_UPLOADED', doctorId, consultationId, {
+      fileName: file.originalname,
+      sizeBytes: file.size,
+    });
+
+    return audioRecording;
   }
 
   async getDownloadUrl(doctorId: string, consultationId: string): Promise<string> {

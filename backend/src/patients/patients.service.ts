@@ -3,20 +3,24 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Patient } from '../../generated/prisma/client';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
+import { AuditLogService } from '../audit-log/audit-log.service';
 
 @Injectable()
 export class PatientsService {
-  constructor(private readonly prisma: PrismaService) {}
+constructor(
+  private readonly prisma: PrismaService,
+  private readonly auditLog: AuditLogService,
+) {}
 
-  async create(doctorId: string, dto: CreatePatientDto): Promise<Patient> {
-    return this.prisma.patient.create({
-      data: {
-        ...dto,
-        dateOfBirth: new Date(dto.dateOfBirth),
-        doctorId,
-      },
-    });
-  }
+async create(doctorId: string, dto: CreatePatientDto): Promise<Patient> {
+  const patient = await this.prisma.patient.create({
+    data: { ...dto, dateOfBirth: new Date(dto.dateOfBirth), doctorId },
+  });
+
+  await this.auditLog.record('PATIENT_CREATED', doctorId, patient.id);
+
+  return patient;
+}
 
   async findAllForDoctor(doctorId: string, includeArchived = false): Promise<Patient[]> {
     return this.prisma.patient.findMany({
