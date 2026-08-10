@@ -39,6 +39,27 @@ async function loadConsultation() {
 const isApproving = ref(false);
 const showApproveConfirm = ref(false);
 
+async function handleDownloadPdf() {
+  const response = await fetch(
+    `${config.public.apiBaseUrl}/consultations/${consultationId}/soap-note/pdf`,
+    {
+      headers: { Authorization: `Bearer ${authStore.accessToken}` },
+    },
+  );
+
+  if (!response.ok) {
+    uploadError.value = 'Failed to download PDF';
+    return;
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'soap-note.pdf';
+  link.click();
+  window.URL.revokeObjectURL(url);
+}
 async function handleApprove() {
   isApproving.value = true;
   try {
@@ -192,6 +213,9 @@ function statusLabel(status: string): string {
 <p v-if="consultation.status === 'APPROVED'" class="approved-notice">
   ✓ This note has been approved and is now the final medical record.
 </p>
+<button v-if="consultation.status === 'APPROVED'" class="pdf-btn" @click="handleDownloadPdf">
+  Download PDF
+</button>
 <div v-if="allVersions.length > 1" class="version-selector">
   <label for="version">Viewing version:</label>
   <select id="version" v-model="selectedVersionId">
@@ -388,5 +412,19 @@ h1 {
   padding: 0.4rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+.pdf-btn {
+  padding: 0.6rem 1.2rem;
+  background: white;
+  color: #1e40af;
+  border: 1px solid #1e40af;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+
+.pdf-btn:hover {
+  background: #eff6ff;
 }
 </style>

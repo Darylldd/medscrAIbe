@@ -11,6 +11,7 @@ import { AiModule } from './ai/ai.module';
 import { DocumentationEngineModule } from './documentation-engine/documentation-engine.module';
 import { SoapNotesModule } from './soap-notes/soap-notes.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
+import { PdfExportModule } from './pdf-export/pdf-export.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     DocumentationEngineModule,
     SoapNotesModule,
     AuditLogModule,
+    PdfExportModule,
   ],
   controllers: [],
   providers: [],
