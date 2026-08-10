@@ -10,7 +10,13 @@ export class ConsultationsService {
     private readonly prisma: PrismaService,
     private readonly auditLog: AuditLogService,
   ) {}
-
+async findPendingReviewForDoctor(doctorId: string): Promise<Consultation[]> {
+  return this.prisma.consultation.findMany({
+    where: { doctorId, status: 'READY_FOR_REVIEW' },
+    include: { patient: true },
+    orderBy: { updatedAt: 'asc' },
+  });
+}
   async create(doctorId: string, dto: CreateConsultationDto): Promise<Consultation> {
     const patient = await this.prisma.patient.findUnique({
       where: { id: dto.patientId },

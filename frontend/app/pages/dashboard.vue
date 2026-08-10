@@ -4,8 +4,10 @@ definePageMeta({ middleware: 'auth' });
 const authStore = useAuthStore();
 const router = useRouter();
 const { fetchPatients, createPatient } = usePatients();
+const { fetchPendingReview } = useConsultations();
 
 const patients = ref<Awaited<ReturnType<typeof fetchPatients>>>([]);
+const pendingReview = ref<Awaited<ReturnType<typeof fetchPendingReview>>>([]);
 const isLoading = ref(true);
 const loadError = ref('');
 
@@ -15,6 +17,7 @@ const newLastName = ref('');
 const newDob = ref('');
 const isCreating = ref(false);
 const createError = ref('');
+
 
 async function loadPatients() {
   isLoading.value = true;
@@ -28,6 +31,23 @@ async function loadPatients() {
 }
 
 onMounted(loadPatients);
+async function loadDashboard() {
+  isLoading.value = true;
+  try {
+    const [patientsResult, pendingResult] = await Promise.all([
+      fetchPatients(),
+      fetchPendingReview(),
+    ]);
+    patients.value = patientsResult;
+    pendingReview.value = pendingResult;
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : 'Failed to load dashboard';
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+onMounted(loadDashboard);
 
 async function handleCreatePatient() {
   createError.value = '';
@@ -76,6 +96,17 @@ function formatDob(dob: string): string {
     </header>
 
    <main>
+   <section v-if="pendingReview.length > 0" class="pending-section">
+  <h2>Awaiting Review ({{ pendingReview.length }})</h2>
+  <ul class="pending-list">
+    <li v-for="item in pendingReview" :key="item.id">
+      <NuxtLink :to="`/consultations/${item.id}`">
+        <span>{{ item.patient?.lastName }}, {{ item.patient?.firstName }}</span>
+        <span class="date">{{ new Date(item.occurredAt).toLocaleDateString() }}</span>
+      </NuxtLink>
+    </li>
+  </ul>
+</section>
   <div class="section-header">
     <h2>Patients</h2>
     <button v-if="!showNewPatientForm" @click="showNewPatientForm = true">
@@ -195,7 +226,40 @@ h2 {
   flex-direction: column;
   gap: 0.5rem;
 }
+.pending-section {
+  margin-bottom: 2rem;
+}
 
+.pending-section h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.pending-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pending-list a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 1.1rem;
+  background: #fefce8;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #111;
+}
+
+.pending-list .date {
+  font-size: 0.85rem;
+  color: #92400e;
+}
 .patient-list a {
   display: flex;
   justify-content: space-between;

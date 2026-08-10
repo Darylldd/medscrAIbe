@@ -7,7 +7,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 export class ConsultationsController {
   constructor(private readonly consultationsService: ConsultationsService) {}
-
+@Get('pending-review')
+async findPendingReview(@Req() req: any) {
+  return this.consultationsService.findPendingReviewForDoctor(req.user.id);
+}
   @Post()
   async create(@Req() req: any, @Body() dto: CreateConsultationDto) {
     return this.consultationsService.create(req.user.id, dto);

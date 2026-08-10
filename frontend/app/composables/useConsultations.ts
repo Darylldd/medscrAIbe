@@ -3,6 +3,10 @@ interface Consultation {
   status: string;
   occurredAt: string;
   patientId: string;
+  patient?: {
+    firstName: string;
+    lastName: string;
+  };
 }
 
 interface CreateConsultationInput {
@@ -34,5 +38,11 @@ export function useConsultations() {
     });
   }
 
-  return { fetchConsultationsForPatient, fetchConsultation, createConsultation };
+  async function fetchPendingReview(): Promise<Consultation[]> {
+    return request<Consultation[]>('/consultations/pending-review', {
+      token: authStore.accessToken!,
+    });
+  }
+
+  return { fetchConsultationsForPatient, fetchConsultation, createConsultation, fetchPendingReview };
 }
